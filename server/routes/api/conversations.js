@@ -19,9 +19,9 @@ router.get("/", async (req, res, next) => {
         },
       },
       attributes: ["id"],
-      order: [[Message, "createdAt", "DESC"]],
+      order: [[Message, "createdAt", "ASC"]],
       include: [
-        { model: Message, order: ["createdAt", "DESC"] },
+        { model: Message },
         {
           model: User,
           as: "user1",
@@ -68,9 +68,14 @@ router.get("/", async (req, res, next) => {
       }
 
       // set properties for notification count and latest message preview
-      convoJSON.latestMessageText = convoJSON.messages[0].text;
+      convoJSON.latestMessageText = convoJSON.messages[convoJSON.messages.length-1].text;
       conversations[i] = convoJSON;
     }
+
+    // sort conversations based on most recent message createdAt date
+    conversations.sort((convoA,convoB) => {
+      return convoB.messages[convoB.messages.length-1].createdAt - convoA.messages[convoA.messages.length-1].createdAt;
+    });
 
     res.json(conversations);
   } catch (error) {
