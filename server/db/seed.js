@@ -2,6 +2,7 @@ const db = require("./db");
 const { User } = require("./models");
 const Conversation = require("./models/conversation");
 const Message = require("./models/message");
+const LastRead = require("./models/last-read");
 
 async function seed() {
   await db.sync({ force: true });
@@ -28,7 +29,7 @@ async function seed() {
     user2Id: santiago.id,
   });
 
-  await Message.create({
+  const santaigoMessage1 = await Message.create({
     conversationId: santaigoConvo.id,
     senderId: santiago.id,
     text: "Where are you from?",
@@ -55,7 +56,7 @@ async function seed() {
     user1Id: chiumbo.id,
     user2Id: thomas.id,
   });
-  await Message.create({
+  const chiumboMessage1 = await Message.create({
     conversationId: chiumboConvo.id,
     senderId: chiumbo.id,
     text: "Sure! What time?",
@@ -81,10 +82,28 @@ async function seed() {
     });
   }
 
-  await Message.create({
+  const hualingMessage1 = await Message.create({
     conversationId: hualingConvo.id,
     senderId: hualing.id,
     text: "😂 😂 😂",
+  });
+
+  await LastRead.create({
+    conversationId: hualingConvo.id,
+    userId: thomas.id,
+    messageId: hualingMessage1.id
+  });
+
+  await LastRead.create({
+    conversationId: chiumboConvo.id,
+    userId: thomas.id,
+    messageId: chiumboMessage1.id
+  });
+
+  await LastRead.create({
+    conversationId: santaigoConvo.id,
+    userId: thomas.id,
+    messageId: santaigoMessage1.id
   });
 
   const otherUsers = await Promise.all([
