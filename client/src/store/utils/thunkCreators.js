@@ -5,6 +5,7 @@ import {
   addConversation,
   setNewMessage,
   setSearchedUsers,
+  setNewReads,
 } from "../conversations";
 import { gotUser, setFetchingStatus } from "../user";
 
@@ -117,3 +118,31 @@ export const searchUsers = (searchTerm) => async (dispatch) => {
     console.error(error);
   }
 };
+
+// send new reads to api to update
+const saveReads = async (body) => {
+  const { data } = await axios.post("/api/last-reads", body);
+  return data;
+};
+
+// notify other users of read updates via socket
+const updateReads = (data) => {
+  socket.emit("update-read", { 
+    lastReads: data.lastReads 
+  });
+};
+
+
+export const updateLastReads = (body) => async (dispatch) => {
+  try {
+    // save reads in database 
+    await saveReads(body);
+    // update reads in state
+    dispatch(setNewReads(body));
+    //notify other user/s to update state
+    updateReads({ lastReads: body });
+  } catch(error){
+    console.log(error)
+  }
+}
+
