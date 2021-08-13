@@ -1,6 +1,7 @@
 import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { Box, Typography } from "@material-ui/core";
+import { ReceiverReadAvatar } from "../ActiveChat";
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -29,12 +30,17 @@ const useStyles = makeStyles(() => ({
 
 const SenderBubble = (props) => {
   const classes = useStyles();
-  const { time, text } = props;
+  const { time, text, otherUsers } = props;
   return (
     <Box className={classes.root}>
       <Typography className={classes.date}>{time}</Typography>
       <Box className={classes.bubble}>
         <Typography className={classes.text}>{text}</Typography>
+      </Box>
+      <Box display="flex" >
+        {otherUsers.map(otherUser => {
+         return otherUser && <ReceiverReadAvatar key={otherUser.id} userWithLastRead={otherUser} />
+        })}
       </Box>
     </Box>
   );
