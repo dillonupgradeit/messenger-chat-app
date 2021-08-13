@@ -36,6 +36,7 @@ const ActiveChat = (props) => {
           <Box className={classes.chatContainer}>
             <Messages
               messages={conversation.messages}
+              lastReads={conversation.lastReads}
               otherUser={conversation.otherUser}
               userId={user.id}
             />
@@ -50,6 +51,13 @@ const ActiveChat = (props) => {
     </Box>
   );
 };
+const mapDispatchToProps = (dispatch) => {
+  return {
+    updateLastReadMessages: (data) => {
+      dispatch(updateLastReadMessages(data));
+    }
+  };
+};
 
 const mapStateToProps = (state) => {
   return {
@@ -62,4 +70,4 @@ const mapStateToProps = (state) => {
   };
 };
 
-export default connect(mapStateToProps, null)(ActiveChat);
+export default connect(mapStateToProps, mapDispatchToProps)(ActiveChat);
