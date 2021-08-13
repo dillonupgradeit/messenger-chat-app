@@ -146,3 +146,38 @@ export const updateLastReads = (body) => async (dispatch) => {
   }
 }
 
+export const updateLastReadMessages = (data) => async (dispatch) => {
+  try {
+    const userLastRead = data.lastReads.find(read => read.userId === data.userId);
+    // if received new message in conversation in activeChat
+    // update lastReads with most recent received message and notify other users
+    let updated = false;
+    const updatedLastRead = data.lastReads.map((read) => {
+      if(read.userId === data.userId && read.messageId !== data.message.id){
+        updated = true;
+        return {
+          ...read,
+          messageId: data.message.id,
+        }
+      } 
+      return read;
+    });
+    // if no lastRead exists for user for conversation, initialize one
+    if (!userLastRead) {
+      updated = true;
+      updatedLastRead.push({
+        conversationId: data.message.conversationId,
+        userId: data.userId,
+        messageId: data.message.id,
+      });
+    }
+    if(updated){
+      // update db and notify other user/s
+      dispatch(updateLastReads(updatedLastRead));
+    }
+
+  } catch(error) {
+    console.log(error);
+  }
+
+};
