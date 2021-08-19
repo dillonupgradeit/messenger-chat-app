@@ -121,3 +121,15 @@ export const increaseUnreadCountToStore = (state, message) => {
     }
   });
 }
+
+export const setOtherUserTypingToStore = (state, conversationId, isTyping) => {
+  return state.map((convo) => {
+    if (convo.id === conversationId) {
+      const convoCopy = { ...convo };
+      convoCopy.otherUserTyping = isTyping;
+      return convoCopy
+    } else {
+      return convo;
+    }
+  })
+} 
