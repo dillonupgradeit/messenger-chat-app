@@ -30,7 +30,7 @@ const useStyles = makeStyles(() => ({
 
 const SenderBubble = (props) => {
   const classes = useStyles();
-  const { time, text, otherUsers } = props;
+  const { time, text, isLastReadByOtherUser, otherUser } = props;
   return (
     <Box className={classes.root}>
       <Typography className={classes.date}>{time}</Typography>
@@ -38,9 +38,7 @@ const SenderBubble = (props) => {
         <Typography className={classes.text}>{text}</Typography>
       </Box>
       <Box display="flex" >
-        {otherUsers.map(otherUser => {
-         return otherUser && <ReceiverReadAvatar key={otherUser.id} userWithLastRead={otherUser} />
-        })}
+        {isLastReadByOtherUser && <ReceiverReadAvatar key={otherUser.id} userWithLastRead={otherUser} />}
       </Box>
     </Box>
   );
