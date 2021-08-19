@@ -6,6 +6,7 @@ import {
   addOnlineUser,
   updateMessageRead,
   increaseUnreadCount,
+  setOtherUserTyping,
 } from "./store/conversations";
 import { updateLastReadMessage } from "./store/utils/thunkCreators";
 
@@ -42,6 +43,19 @@ socket.on("connect", () => {
     store.dispatch(updateMessageRead(data.message, true));
   });
 
+  socket.on("typing-message", (data) => {
+    store.dispatch(setOtherUserTyping(data.conversationId, data.isTyping));
+    // if timeout interval is set then clear it
+    if(socket.typingTimout){
+      clearTimeout(socket.typingTimout);
+    }
+    // if isTyping set to true, set a timeout interval (60s)
+    if(data.isTyping){
+      socket.typingTimout = setTimeout(() => {
+        store.dispatch(setOtherUserTyping(data.conversationId, false));
+      }, 60000);
+    } 
+  });
 });
 
 export default socket;
