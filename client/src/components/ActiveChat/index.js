@@ -1,5 +1,6 @@
 export { default as SenderBubble } from "./SenderBubble";
 export { default as OtherUserBubble } from "./OtherUserBubble";
+export { default as TypingBubble } from "./TypingBubble";
 export { default as ReceiverReadAvatar } from "./ReceiverReadAvatar";
 export { default as ActiveChat } from "./ActiveChat";
 export { default as Input } from "./Input";
