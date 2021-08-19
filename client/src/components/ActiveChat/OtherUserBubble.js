@@ -19,7 +19,7 @@ const useStyles = makeStyles(() => ({
     marginBottom: 5
   },
   bubble: {
-    backgroundImage: "linear-gradient(225deg, #6CC1FF 0%, #3A8DFF 100%)",
+    backgroundImage: "linear-gradient(225deg, #74b6e4 0%, #5383c3 100%)",
     borderRadius: "0 10px 10px 10px"
   },
   text: {
