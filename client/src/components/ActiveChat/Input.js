@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FormControl, FilledInput } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { connect } from "react-redux";
-import { postMessage } from "../../store/utils/thunkCreators";
+import { postMessage, updateIsTyping } from "../../store/utils/thunkCreators";
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -24,7 +24,12 @@ const Input = (props) => {
 
   const handleChange = (event) => {
     setText(event.target.value);
+    updateIsTyping({conversationId, isTyping: true});
   };
+
+  const handleOnBlur = () => {
+    updateIsTyping({conversationId, isTyping: false});
+  }
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -38,6 +43,7 @@ const Input = (props) => {
     };
     await postMessage(reqBody);
     setText("");
+    updateIsTyping({conversationId, isTyping: false});
   };
 
   return (
@@ -50,6 +56,7 @@ const Input = (props) => {
           value={text}
           name="text"
           onChange={handleChange}
+          onBlur={handleOnBlur}
         />
       </FormControl>
     </form>
