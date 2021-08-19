@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const { User, Conversation, Message, LastRead } = require("../../db/models");
+const { User, Conversation, Message } = require("../../db/models");
 const { Op } = require("sequelize");
 const onlineUsers = require("../../onlineUsers");
 
@@ -22,7 +22,6 @@ router.get("/", async (req, res, next) => {
       order: [[Message, "createdAt", "ASC"]],
       include: [
         { model: Message },
-        { model: LastRead },
         {
           model: User,
           as: "user1",
