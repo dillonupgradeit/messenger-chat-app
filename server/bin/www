@@ -54,6 +54,13 @@ io.on("connection", (socket) => {
     });
   });
 
+  socket.on("typing-message", (data) => {
+    socket.broadcast.emit("typing-message", {
+      conversationId: data.conversationId,
+      isTyping: data.isTyping,
+    });
+  });
+
   socket.on("logout", (id) => {
     if (onlineUsers.includes(id)) {
       userIndex = onlineUsers.indexOf(id);
