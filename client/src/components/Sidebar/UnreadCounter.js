@@ -18,7 +18,7 @@ const useStyles = makeStyles((theme) => ({
   },
   bubble: {
     background: "#528ac5",
-    borderRadius: "50%"
+    borderRadius: "20px"
   }
 }));
 
