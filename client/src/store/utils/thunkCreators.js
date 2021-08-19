@@ -154,3 +154,14 @@ export const joinChat = (conversation) => async (dispatch) => {
     dispatch(updateLastReadMessage({message: lastUnreadMessage}));
   }
 }
+
+export const updateIsTyping = (data) => {
+  socket.emit("typing-message", {
+    conversationId: data.conversationId,
+    isTyping: data.isTyping
+  });
+}
+
+export const updateTypingTimeout = (data) => async (dispatch) => {
+  await dispatch(setOtherUserTyping(data));
+}
