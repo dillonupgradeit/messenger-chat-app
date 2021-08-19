@@ -144,3 +144,13 @@ export const updateLastReadMessage = (body) => async (dispatch) => {
   //send read update to socket
   sendLastReadMessage(data);
 }
+
+export const joinChat = (conversation) => async (dispatch) => {
+  await dispatch(setActiveChat(conversation.otherUser.username));
+  setActiveChatInSocket(conversation.otherUser.username);
+  const unreadMessages = conversation.messages.filter((message) => message.senderId === conversation.otherUser.id && message.read === false);
+  const lastUnreadMessage = unreadMessages.length ? unreadMessages.reduce((prev, current) => (prev.id > current.id) ? prev : current) : null;
+  if(lastUnreadMessage){
+    dispatch(updateLastReadMessage({message: lastUnreadMessage}));
+  }
+}
