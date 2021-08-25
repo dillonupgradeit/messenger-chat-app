@@ -44,12 +44,20 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("new-message", {
       message: data.message,
       sender: data.sender,
+      senderName: data.senderName
     });
   });
 
-  socket.on("update-read", (data) => {
-    socket.broadcast.emit("update-read", { 
-      lastReads: data.lastReads 
+  socket.on("last-read-message", (data) => {
+    socket.broadcast.emit("last-read-message", {
+      message: data.message,
+    });
+  });
+
+  socket.on("typing-message", (data) => {
+    socket.broadcast.emit("typing-message", {
+      conversationId: data.conversationId,
+      isTyping: data.isTyping,
     });
   });
 

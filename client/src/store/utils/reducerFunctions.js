@@ -6,7 +6,6 @@ export const addMessageToStore = (state, payload) => {
       id: message.conversationId,
       otherUser: sender,
       messages: [message],
-      lastReads: []
     };
     newConvo.latestMessageText = message.text;
     return [newConvo, ...state];
@@ -82,14 +81,55 @@ export const addNewConvoToStore = (state, recipientId, message) => {
   });
 };
 
-export const updateReadsToStore = (state, lastReads) => {
+export const updateMessageReadToStore = (state, message, fromOtherUser) => {
   return state.map((convo) => {
-    if(convo.id === lastReads[0].conversationId){
+    if (convo.id === message.conversationId) {
       const convoCopy = { ...convo };
-      convoCopy.lastReads = lastReads;
+      convoCopy.messages.forEach((convoMes) => {
+        if(fromOtherUser){
+          if(convoMes.id === message.id){
+            convoMes.isLastReadByOtherUser = true;
+          } else {
+            convoMes.isLastReadByOtherUser = false;
+          }
+        } else {
+          convoCopy.unreadCount = 0;
+        }
+        if(convoMes.id <= message.id && convoMes.senderId === message.senderId){
+          convoMes.read = true;
+        }
+      });
       return convoCopy;
+    } else {
+      return convo;
     }
-    return convo;
+  })
+}
+
+export const increaseUnreadCountToStore = (state, message) => {
+  return state.map((convo) => {
+    if (convo.id === message.conversationId) {
+      const convoCopy = { ...convo };
+      if(convoCopy.unreadCount){
+        convoCopy.unreadCount++;
+      } else {
+        convoCopy.unreadCount = 1;
+      }
+      return convoCopy
+    } else {
+      return convo;
+    }
   });
-  
-};
+}
+
+export const setOtherUserTypingToStore = (state, conversationId, isTyping) => {
+  return state.map((convo) => {
+    if (convo.id === conversationId) {
+      const convoCopy = { ...convo };
+      convoCopy.otherUserTyping = isTyping;
+      return convoCopy
+    } else {
+      return convo;
+    }
+  })
+} 

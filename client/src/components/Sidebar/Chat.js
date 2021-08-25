@@ -1,8 +1,8 @@
-import React, { useCallback, useMemo } from "react";
+import React from "react";
 import { Box } from "@material-ui/core";
 import { BadgeAvatar, ChatContent, UnreadCounter } from "../Sidebar";
 import { makeStyles } from "@material-ui/core/styles";
-import { setActiveChat } from "../../store/activeConversation";
+import { joinChat } from "../../store/utils/thunkCreators";
 import { connect } from "react-redux";
 
 const useStyles = makeStyles((theme) => ({
@@ -23,26 +23,10 @@ const Chat = (props) => {
   const classes = useStyles();
   const { conversation } = props;
   const { otherUser } = conversation;
-  const user = useMemo(() => props.user || {}, [ props ]);
 
   const handleClick = async (conversation) => {
-    await props.setActiveChat(conversation.otherUser.username);
+    await props.joinChat(conversation);
   };
-
-  // get current user's last read
-  const userLastRead = conversation.lastReads.find(read => read.userId === user.id);
-  // calculate unread count
-  const unreadCount = useCallback(() => {
-    let unreadCount = 0;
-    if (userLastRead) {
-      // if last read exists in db count all messages not sent by user, since last read message, by messageId
-      unreadCount = conversation.messages.filter(message => message.senderId !== user.id && message.id > userLastRead.messageId).length;
-    } else if (conversation.messages.length !== 0) {
-      // else count all messages not sent by current user
-      unreadCount = conversation.messages.filter(mes => mes.senderId !== user.id).length;
-    }
-    return unreadCount;
-  }, [conversation, user, userLastRead]);
 
   return (
     <Box onClick={() => handleClick(conversation)} className={classes.root}>
@@ -53,16 +37,16 @@ const Chat = (props) => {
         sidebar={true}
       />
       <ChatContent conversation={conversation} />
-      {unreadCount() > 0 && <UnreadCounter unreadCount={unreadCount()} />}
+      {conversation.unreadCount > 0 && <UnreadCounter unreadCount={conversation.unreadCount} />}
     </Box>
   );
 };
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    setActiveChat: (id) => {
-      dispatch(setActiveChat(id));
-    }
+    joinChat: (conversation) => {
+      dispatch(joinChat(conversation));
+    },
   };
 };
 

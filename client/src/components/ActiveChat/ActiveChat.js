@@ -1,9 +1,8 @@
-import React, { useMemo, useEffect, useCallback } from "react";
+import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { Box } from "@material-ui/core";
 import { Input, Header, Messages } from "./index";
 import { connect } from "react-redux";
-import { updateLastReadMessages } from "../../store/utils/thunkCreators";
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -24,23 +23,7 @@ const useStyles = makeStyles(() => ({
 const ActiveChat = (props) => {
   const classes = useStyles();
   const { user } = props;
-  const conversation = useMemo(() => props.conversation || {}, [props]);
-
-  const updateLastRead = useCallback(() => {
-    // get all messages received by user
-    const receivedMessages = conversation.messages.filter(mes => mes.senderId !== user.id);
-    // if user has received message, update last read message and update user
-    if(receivedMessages.length > 0){
-      const getLastReceivedMessage = receivedMessages.reduce((max, message) => (max.id > message.id) ? max : message);
-      props.updateLastReadMessages({userId: user.id, lastReads: conversation.lastReads, message: getLastReceivedMessage });
-    }
-  },[ props, conversation, user ]);
-  
-  useEffect(() => {
-    if(conversation.messages && conversation.messages.length > 0){
-      updateLastRead();
-    }
-  },[updateLastRead, conversation]);
+  const conversation = props.conversation || {};
 
   return (
     <Box className={classes.root}>
@@ -53,9 +36,9 @@ const ActiveChat = (props) => {
           <Box className={classes.chatContainer}>
             <Messages
               messages={conversation.messages}
-              lastReads={conversation.lastReads}
               otherUser={conversation.otherUser}
               userId={user.id}
+              isTyping={conversation.otherUserTyping}
             />
             <Input
               otherUser={conversation.otherUser}
@@ -67,13 +50,6 @@ const ActiveChat = (props) => {
       )}
     </Box>
   );
-};
-const mapDispatchToProps = (dispatch) => {
-  return {
-    updateLastReadMessages: (data) => {
-      dispatch(updateLastReadMessages(data));
-    }
-  };
 };
 
 const mapStateToProps = (state) => {
@@ -87,4 +63,4 @@ const mapStateToProps = (state) => {
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(ActiveChat);
+export default connect(mapStateToProps)(ActiveChat);

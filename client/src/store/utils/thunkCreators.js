@@ -1,12 +1,14 @@
 import axios from "axios";
-import socket from "../../socket";
+import socket, { setActiveChatInSocket } from "../../socket";
 import {
   gotConversations,
   addConversation,
   setNewMessage,
   setSearchedUsers,
-  setNewReads,
+  updateMessageRead,
+  setOtherUserTyping,
 } from "../conversations";
+import { setActiveChat } from "../activeConversation"
 import { gotUser, setFetchingStatus } from "../user";
 
 axios.interceptors.request.use(async function (config) {
@@ -79,17 +81,19 @@ export const fetchConversations = () => async (dispatch) => {
   }
 };
 
-const saveMessage = async (body) => {
-  const { data } = await axios.post("/api/messages", body);
-  return data;
-};
-
 const sendMessage = (data, body) => {
   socket.emit("new-message", {
     message: data.message,
     recipientId: body.recipientId,
     sender: data.sender,
+    senderName: body.senderName,
   });
+};
+
+
+const saveMessage = async (body) => {
+  const { data } = await axios.post("/api/messages", body);
+  return data;
 };
 
 // message format to send: {recipientId, text, conversationId}
@@ -120,64 +124,45 @@ export const searchUsers = (searchTerm) => async (dispatch) => {
 };
 
 // send new reads to api to update
-const saveReads = async (body) => {
-  const { data } = await axios.post("/api/last-reads", body);
+const saveMessageReads = async (body) => {
+  const { data } = await axios.put("/api/messages/read", body);
   return data;
-};
+}
 
-// notify other users of read updates via socket
-const updateReads = (data) => {
-  socket.emit("update-read", { 
-    lastReads: data.lastReads 
+const sendLastReadMessage = (data) => {
+  socket.emit("last-read-message", {
+    message: data.message,
   });
 };
 
+export const updateLastReadMessage = (body) => async (dispatch) => {
+  // update db
+  const data = await saveMessageReads(body);
+  // update conversations in store from current user
+  // 2nd param "false" signifies that the updateMessageRead is being passed by current user.
+  dispatch(updateMessageRead(data.message, false));
+  
+  //send read update to socket
+  sendLastReadMessage(data);
+}
 
-export const updateLastReads = (body) => async (dispatch) => {
-  try {
-    // save reads in database 
-    await saveReads(body);
-    // update reads in state
-    dispatch(setNewReads(body));
-    //notify other user/s to update state
-    updateReads({ lastReads: body });
-  } catch(error){
-    console.log(error)
+export const joinChat = (conversation) => async (dispatch) => {
+  await dispatch(setActiveChat(conversation.otherUser.username));
+  setActiveChatInSocket(conversation.otherUser.username);
+  const unreadMessages = conversation.messages.filter((message) => message.senderId === conversation.otherUser.id && message.read === false);
+  const lastUnreadMessage = unreadMessages.length ? unreadMessages[unreadMessages.length-1] : null;
+  if(lastUnreadMessage){
+    dispatch(updateLastReadMessage({message: lastUnreadMessage}));
   }
 }
 
-export const updateLastReadMessages = (data) => async (dispatch) => {
-  try {
-    const userLastRead = data.lastReads.find(read => read.userId === data.userId);
-    // if received new message in conversation in activeChat
-    // update lastReads with most recent received message and notify other users
-    let updated = false;
-    const updatedLastRead = data.lastReads.map((read) => {
-      if(read.userId === data.userId && read.messageId !== data.message.id){
-        updated = true;
-        return {
-          ...read,
-          messageId: data.message.id,
-        }
-      } 
-      return read;
-    });
-    // if no lastRead exists for user for conversation, initialize one
-    if (!userLastRead) {
-      updated = true;
-      updatedLastRead.push({
-        conversationId: data.message.conversationId,
-        userId: data.userId,
-        messageId: data.message.id,
-      });
-    }
-    if(updated){
-      // update db and notify other user/s
-      dispatch(updateLastReads(updatedLastRead));
-    }
+export const updateIsTyping = (data) => {
+  socket.emit("typing-message", {
+    conversationId: data.conversationId,
+    isTyping: data.isTyping
+  });
+}
 
-  } catch(error) {
-    console.log(error);
-  }
-
-};
+export const updateTypingTimeout = (data) => async (dispatch) => {
+  await dispatch(setOtherUserTyping(data));
+}
