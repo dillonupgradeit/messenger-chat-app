@@ -76,7 +76,7 @@ router.get("/", async (req, res, next) => {
       // calculate if each message is last read or not
       const otherUserReadMessages = convoJSON.messages.filter((message) => message.senderId !== convoJSON.otherUser.id && message.read === true);
       const lastRead = otherUserReadMessages.length ? otherUserReadMessages.reduce((prev, current) => (prev.id > current.id) ? prev : current) : null;
-      convoJSON.messages.map(message => lastRead && message.id === lastRead.id ? message.isLastReadByOtherUser = true : message.isLastReadByOtherUser = false);
+      convoJSON.messages.forEach(message => lastRead && message.id === lastRead.id ? message.isLastReadByOtherUser = true : message.isLastReadByOtherUser = false);
 
       conversations[i] = convoJSON;
     }
