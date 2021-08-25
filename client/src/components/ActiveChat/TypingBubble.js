@@ -47,7 +47,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const OtherUserBubble = (props) => {
+const TypingBubble = (props) => {
   const classes = useStyles();
   const { otherUser } = props;
 
@@ -68,4 +68,4 @@ const OtherUserBubble = (props) => {
   );
 };
 
-export default OtherUserBubble;
+export default TypingBubble;
