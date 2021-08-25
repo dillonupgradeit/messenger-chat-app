@@ -62,11 +62,7 @@ router.put("/read", async (req, res, next) => {
         where: { 
           conversationId: conversation.id,
           senderId: message.senderId,
-          read: 0,
-          id: {
-            [Op.lte]: message.id
-          }
-          
+          read: false,
         }
       });
     }
