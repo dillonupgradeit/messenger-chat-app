@@ -81,11 +81,6 @@ export const fetchConversations = () => async (dispatch) => {
   }
 };
 
-const saveMessage = async (body) => {
-  const { data } = await axios.post("/api/messages", body);
-  return data;
-};
-
 const sendMessage = (data, body) => {
   socket.emit("new-message", {
     message: data.message,
@@ -93,6 +88,12 @@ const sendMessage = (data, body) => {
     sender: data.sender,
     senderName: body.senderName,
   });
+};
+
+
+const saveMessage = async (body) => {
+  const { data } = await axios.post("/api/messages", body);
+  return data;
 };
 
 // message format to send: {recipientId, text, conversationId}
@@ -149,7 +150,7 @@ export const joinChat = (conversation) => async (dispatch) => {
   await dispatch(setActiveChat(conversation.otherUser.username));
   setActiveChatInSocket(conversation.otherUser.username);
   const unreadMessages = conversation.messages.filter((message) => message.senderId === conversation.otherUser.id && message.read === false);
-  const lastUnreadMessage = unreadMessages.length ? unreadMessages.reduce((prev, current) => (prev.id > current.id) ? prev : current) : null;
+  const lastUnreadMessage = unreadMessages.length ? unreadMessages[unreadMessages.length-1] : null;
   if(lastUnreadMessage){
     dispatch(updateLastReadMessage({message: lastUnreadMessage}));
   }
