@@ -4,6 +4,9 @@ import {
   addSearchedUsersToStore,
   removeOfflineUserFromStore,
   addMessageToStore,
+  updateMessageReadToStore,
+  increaseUnreadCountToStore,
+  setOtherUserTypingToStore,
 } from "./utils/reducerFunctions";
 
 // ACTIONS
@@ -15,6 +18,9 @@ const REMOVE_OFFLINE_USER = "REMOVE_OFFLINE_USER";
 const SET_SEARCHED_USERS = "SET_SEARCHED_USERS";
 const CLEAR_SEARCHED_USERS = "CLEAR_SEARCHED_USERS";
 const ADD_CONVERSATION = "ADD_CONVERSATION";
+const UPDATE_MESSAGE_READ = "UPDATE_MESSAGE_READ";
+const INCREASE_UNREAD_COUNT = "INCREASE_UNREAD_COUNT";
+const SET_OTHER_USER_TYPING = "SET_OTHER_USER_TYPING";
 
 // ACTION CREATORS
 
@@ -67,6 +73,33 @@ export const addConversation = (recipientId, newMessage) => {
   };
 };
 
+export const updateMessageRead = (message, fromOtherUser) => {
+  return {
+    type: UPDATE_MESSAGE_READ,
+    payload: {
+      message,
+      fromOtherUser
+    }
+  }
+}
+
+export const increaseUnreadCount = (message) => {
+  return {
+    type: INCREASE_UNREAD_COUNT,
+    message,
+  }
+}
+
+export const setOtherUserTyping = (conversationId, isTyping) => {
+  return {
+    type: SET_OTHER_USER_TYPING,
+    payload: {
+      conversationId,
+      isTyping
+    }
+  }
+}
+
 // REDUCER
 
 const reducer = (state = [], action) => {
@@ -90,6 +123,20 @@ const reducer = (state = [], action) => {
         state,
         action.payload.recipientId,
         action.payload.newMessage
+      );
+    case UPDATE_MESSAGE_READ:
+      return updateMessageReadToStore(
+        state, 
+        action.payload.message, 
+        action.payload.fromOtherUser
+      );
+    case INCREASE_UNREAD_COUNT:
+      return increaseUnreadCountToStore(state, action.message);
+    case SET_OTHER_USER_TYPING:
+      return setOtherUserTypingToStore(
+        state, 
+        action.payload.conversationId, 
+        action.payload.isTyping
       );
     default:
       return state;

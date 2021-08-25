@@ -1,11 +1,14 @@
 import axios from "axios";
-import socket from "../../socket";
+import socket, { setActiveChatInSocket } from "../../socket";
 import {
   gotConversations,
   addConversation,
   setNewMessage,
   setSearchedUsers,
+  updateMessageRead,
+  setOtherUserTyping,
 } from "../conversations";
+import { setActiveChat } from "../activeConversation"
 import { gotUser, setFetchingStatus } from "../user";
 
 axios.interceptors.request.use(async function (config) {
@@ -78,24 +81,26 @@ export const fetchConversations = () => async (dispatch) => {
   }
 };
 
-const saveMessage = async (body) => {
-  const { data } = await axios.post("/api/messages", body);
-  return data;
-};
-
 const sendMessage = (data, body) => {
   socket.emit("new-message", {
     message: data.message,
     recipientId: body.recipientId,
     sender: data.sender,
+    senderName: body.senderName,
   });
+};
+
+
+const saveMessage = async (body) => {
+  const { data } = await axios.post("/api/messages", body);
+  return data;
 };
 
 // message format to send: {recipientId, text, conversationId}
 // conversationId will be set to null if its a brand new conversation
-export const postMessage = (body) => (dispatch) => {
+export const postMessage = (body) => async (dispatch) => {
   try {
-    const data = saveMessage(body);
+    const data = await saveMessage(body);
 
     if (!body.conversationId) {
       dispatch(addConversation(body.recipientId, data.message));
@@ -117,3 +122,47 @@ export const searchUsers = (searchTerm) => async (dispatch) => {
     console.error(error);
   }
 };
+
+// send new reads to api to update
+const saveMessageReads = async (body) => {
+  const { data } = await axios.put("/api/messages/read", body);
+  return data;
+}
+
+const sendLastReadMessage = (data) => {
+  socket.emit("last-read-message", {
+    message: data.message,
+  });
+};
+
+export const updateLastReadMessage = (body) => async (dispatch) => {
+  // update db
+  const data = await saveMessageReads(body);
+  // update conversations in store from current user
+  // 2nd param "false" signifies that the updateMessageRead is being passed by current user.
+  dispatch(updateMessageRead(data.message, false));
+  
+  //send read update to socket
+  sendLastReadMessage(data);
+}
+
+export const joinChat = (conversation) => async (dispatch) => {
+  await dispatch(setActiveChat(conversation.otherUser.username));
+  setActiveChatInSocket(conversation.otherUser.username);
+  const unreadMessages = conversation.messages.filter((message) => message.senderId === conversation.otherUser.id && message.read === false);
+  const lastUnreadMessage = unreadMessages.length ? unreadMessages[unreadMessages.length-1] : null;
+  if(lastUnreadMessage){
+    dispatch(updateLastReadMessage({message: lastUnreadMessage}));
+  }
+}
+
+export const updateIsTyping = (data) => {
+  socket.emit("typing-message", {
+    conversationId: data.conversationId,
+    isTyping: data.isTyping
+  });
+}
+
+export const updateTypingTimeout = (data) => async (dispatch) => {
+  await dispatch(setOtherUserTyping(data));
+}

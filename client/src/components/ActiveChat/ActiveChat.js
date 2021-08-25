@@ -38,6 +38,7 @@ const ActiveChat = (props) => {
               messages={conversation.messages}
               otherUser={conversation.otherUser}
               userId={user.id}
+              isTyping={conversation.otherUserTyping}
             />
             <Input
               otherUser={conversation.otherUser}
@@ -62,4 +63,4 @@ const mapStateToProps = (state) => {
   };
 };
 
-export default connect(mapStateToProps, null)(ActiveChat);
+export default connect(mapStateToProps)(ActiveChat);

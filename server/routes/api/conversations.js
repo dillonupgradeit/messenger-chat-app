@@ -19,9 +19,9 @@ router.get("/", async (req, res, next) => {
         },
       },
       attributes: ["id"],
-      order: [[Message, "createdAt", "DESC"]],
+      order: [[Message, "createdAt", "ASC"]],
       include: [
-        { model: Message, order: ["createdAt", "DESC"] },
+        { model: Message },
         {
           model: User,
           as: "user1",
@@ -68,9 +68,23 @@ router.get("/", async (req, res, next) => {
       }
 
       // set properties for notification count and latest message preview
-      convoJSON.latestMessageText = convoJSON.messages[0].text;
+      convoJSON.latestMessageText = convoJSON.messages[convoJSON.messages.length-1].text;
+      
+      //calculate unreadCount for conversation
+      convoJSON.unreadCount = convoJSON.messages.filter(message => message.senderId === convoJSON.otherUser.id && message.read === false).length;
+      
+      // calculate if each message is last read or not
+      const otherUserReadMessages = convoJSON.messages.filter((message) => message.senderId !== convoJSON.otherUser.id && message.read === true);
+      const lastRead = otherUserReadMessages.length ? otherUserReadMessages.reduce((prev, current) => (prev.id > current.id) ? prev : current) : null;
+      convoJSON.messages.forEach(message => lastRead && message.id === lastRead.id ? message.isLastReadByOtherUser = true : message.isLastReadByOtherUser = false);
+
       conversations[i] = convoJSON;
     }
+
+    // sort conversations based on most recent message createdAt date
+    conversations.sort((convoA,convoB) => {
+      return convoB.messages[convoB.messages.length-1].createdAt - convoA.messages[convoA.messages.length-1].createdAt;
+    });
 
     res.json(conversations);
   } catch (error) {
